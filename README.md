@@ -46,7 +46,7 @@ and system administrators.
 ![Scanning](screenshots/scanning.jpg)
 
 ### 📊 Scan Report
-![Report](screenshots/Report.png)
+![Report](screenshots/Report.jpg)
 
 ### 📜 Scan History
 ![History](screenshots/History.jpg)
