@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CyberScan Elite — Scanner</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --neon:#00ffe7;--neon2:#ff003c;--neon3:#ffe600;
+      --bg:#03080f;--surface:#070f1a;--surface2:#0b1624;
+      --border:rgba(0,255,231,0.14);--text:#c8e6f0;--dim:#4a7a8a;
+      --green:#00ff88;--red:#ff4060;--yellow:#ffe600;
+    }
+    html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,231,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,231,0.02) 1px,transparent 1px);background-size:40px 40px;z-index:0;pointer-events:none}
+
+    nav{position:sticky;top:0;width:100%;z-index:100;padding:15px 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(3,8,15,0.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
+    .logo{font-family:'Orbitron',monospace;font-size:0.95rem;font-weight:900;color:var(--neon);letter-spacing:3px;text-decoration:none;text-shadow:0 0 18px rgba(0,255,231,0.45)}
+    .logo span{color:var(--neon2)}
+    .nav-links{display:flex;gap:28px}
+    .nav-link{font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--dim);letter-spacing:2px;text-decoration:none;transition:color 0.2s}
+    .nav-link:hover,.nav-link.active{color:var(--neon)}
+
+    main{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:44px 40px 100px;display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:start}
+    .main-left{display:flex;flex-direction:column;gap:20px}
+    .main-right{display:flex;flex-direction:column;gap:20px}
+
+    .panel{background:var(--surface);border:1px solid var(--border);padding:32px;position:relative}
+    .panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--neon),transparent)}
+    .panel-label{font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--neon);letter-spacing:3px;margin-bottom:22px;display:flex;align-items:center;gap:10px}
+    .panel-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+    /* Form */
+    .field{margin-bottom:22px}
+    .field label{display:block;font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--dim);letter-spacing:2px;margin-bottom:9px}
+    .field input{width:100%;padding:13px 16px;background:var(--bg);border:1px solid var(--border);color:var(--neon);font-family:'Share Tech Mono',monospace;font-size:0.9rem;outline:none;transition:border-color 0.3s,box-shadow 0.3s}
+    .field input:focus{border-color:var(--neon);box-shadow:0 0 0 2px rgba(0,255,231,0.07)}
+    .field input::placeholder{color:var(--dim);opacity:0.4}
+
+    .scan-types{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:22px}
+    .stype{padding:16px 10px;text-align:center;background:var(--bg);cursor:pointer;border:none;color:inherit;transition:background 0.2s}
+    .stype:hover{background:rgba(0,255,231,0.04)}
+    .stype.active{background:rgba(0,255,231,0.08);box-shadow:inset 0 2px 0 var(--neon)}
+    .stype-num{font-family:'Share Tech Mono',monospace;font-size:0.55rem;color:var(--neon);letter-spacing:3px;display:block;margin-bottom:6px}
+    .stype-title{font-family:'Orbitron',monospace;font-size:0.72rem;font-weight:700;color:#fff;margin-bottom:4px}
+    .stype-desc{font-size:0.75rem;color:var(--dim)}
+
+    .opt-field{display:none}
+    .opt-field.visible{display:block}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+    /* Toggle switches */
+    .toggles{display:flex;flex-direction:column;gap:12px;margin-bottom:22px}
+    .toggle-row{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg);border:1px solid var(--border)}
+    .toggle-info{font-family:'Share Tech Mono',monospace}
+    .toggle-name{font-size:0.72rem;color:var(--text);display:block;margin-bottom:3px}
+    .toggle-desc{font-size:0.6rem;color:var(--dim);letter-spacing:1px}
+    .switch{position:relative;width:40px;height:22px;flex-shrink:0}
+    .switch input{opacity:0;width:0;height:0}
+    .slider{position:absolute;inset:0;background:rgba(0,255,231,0.1);border:1px solid var(--border);cursor:pointer;transition:background 0.3s}
+    .slider::before{content:'';position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:var(--dim);transition:transform 0.3s,background 0.3s}
+    input:checked+.slider{background:rgba(0,255,231,0.15);border-color:var(--neon)}
+    input:checked+.slider::before{transform:translateX(18px);background:var(--neon)}
+
+    .btn-scan{width:100%;padding:17px;background:var(--neon);border:none;color:var(--bg);font-family:'Orbitron',monospace;font-size:0.85rem;font-weight:900;letter-spacing:4px;cursor:pointer;transition:opacity 0.2s}
+    .btn-scan:hover{opacity:0.88}
+    .btn-scan:disabled{opacity:0.35;cursor:not-allowed}
+
+    .btn-cancel{width:100%;padding:13px;background:transparent;border:1px solid var(--neon2);color:var(--neon2);font-family:'Orbitron',monospace;font-size:0.75rem;letter-spacing:3px;cursor:pointer;transition:background 0.2s,color 0.2s;display:none;margin-top:10px}
+    .btn-cancel:hover{background:var(--neon2);color:#fff}
+    .btn-cancel.visible{display:block}
+
+    /* Progress */
+    #progress-panel{display:none}
+    #progress-panel.visible{display:flex;flex-direction:column;gap:0}
+
+    .prog-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+    .prog-target{font-family:'Share Tech Mono',monospace;font-size:0.85rem;color:var(--neon)}
+    .prog-pct{font-family:'Orbitron',monospace;font-size:2rem;font-weight:900;color:var(--neon);text-shadow:0 0 18px rgba(0,255,231,0.45)}
+    .prog-track{height:5px;background:rgba(0,255,231,0.08);position:relative;overflow:hidden;margin-bottom:10px}
+    .prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--neon),#00b8a0);transition:width 0.5s ease;position:relative}
+    .prog-fill::after{content:'';position:absolute;right:0;top:-5px;width:2px;height:15px;background:#fff;box-shadow:0 0 10px var(--neon)}
+    .prog-status{font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--dim);margin-bottom:18px;min-height:1.2em}
+    .prog-stats{display:flex;gap:28px;margin-bottom:0}
+    .pstat{display:flex;flex-direction:column;gap:3px}
+    .pstat-val{font-family:'Orbitron',monospace;font-size:1rem;color:var(--neon)}
+    .pstat-label{font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:var(--dim);letter-spacing:1px}
+
+    /* Live ports feed */
+    .live-feed{margin-top:18px}
+    .live-feed-label{font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--neon2);letter-spacing:3px;margin-bottom:10px}
+    .live-ports{display:flex;flex-wrap:wrap;gap:8px;min-height:32px}
+    .live-port-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:rgba(0,255,136,0.07);border:1px solid rgba(0,255,136,0.25);font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--green);animation:portPop 0.3s ease}
+    @keyframes portPop{from{opacity:0;transform:scale(0.8)}to{opacity:1;transform:scale(1)}}
+
+    /* Terminal */
+    .terminal{background:#000;border:1px solid rgba(0,255,231,0.08);padding:16px;font-family:'Share Tech Mono',monospace;font-size:0.68rem;color:#3a8a5a;max-height:130px;overflow-y:auto;line-height:1.9;margin-top:16px}
+    .tl{display:block}
+    .tl.info{color:var(--dim)}
+    .tl.success{color:var(--green)}
+    .tl.warn{color:var(--yellow)}
+    .tl.err{color:var(--red)}
+
+    /* Right sidebar */
+    .info-box{background:var(--surface);border:1px solid var(--border);padding:22px;position:relative}
+    .info-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--neon2),transparent)}
+    .info-box-label{font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:var(--neon2);letter-spacing:3px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+    .info-box-label::after{content:'';flex:1;height:1px;background:var(--border)}
+    .info-row{display:flex;flex-direction:column;gap:2px;margin-bottom:13px;padding-bottom:13px;border-bottom:1px solid rgba(0,255,231,0.06)}
+    .info-row:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+    .info-key{font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:var(--dim);letter-spacing:1px}
+    .info-val{font-family:'Share Tech Mono',monospace;font-size:0.78rem;color:var(--text);word-break:break-all}
+    .info-val.neon{color:var(--neon)}
+    .info-val.green{color:var(--green)}
+    .info-val.red{color:var(--red)}
+    .info-val.yellow{color:var(--yellow)}
+
+    /* REPORT */
+    #report-section{grid-column:1/-1;display:none}
+    #report-section.visible{display:block}
+
+    .report-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;flex-wrap:wrap;gap:16px}
+    .report-meta{font-family:'Share Tech Mono',monospace;font-size:0.72rem;line-height:2.1}
+    .report-meta span{color:var(--dim)}
+    .action-row{display:flex;gap:10px;flex-wrap:wrap}
+
+    .btn-dl{display:inline-flex;align-items:center;gap:8px;padding:11px 24px;background:transparent;border:1px solid var(--neon);color:var(--neon);font-family:'Orbitron',monospace;font-size:0.65rem;font-weight:700;letter-spacing:3px;cursor:pointer;transition:background 0.2s,color 0.2s}
+    .btn-dl:hover{background:var(--neon);color:var(--bg)}
+    .btn-ns{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;background:transparent;border:1px solid var(--border);color:var(--dim);font-family:'Orbitron',monospace;font-size:0.65rem;letter-spacing:3px;cursor:pointer;transition:border-color 0.2s,color 0.2s}
+    .btn-ns:hover{border-color:var(--neon);color:var(--neon)}
+
+    .summary-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:28px}
+    .scard{background:var(--bg);padding:18px 12px;text-align:center}
+    .scard-num{font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:900;display:block;margin-bottom:3px}
+    .scard-label{font-family:'Share Tech Mono',monospace;font-size:0.55rem;color:var(--dim);letter-spacing:2px}
+
+    /* Tabs */
+    .report-tabs{display:flex;gap:1px;background:var(--border);border:1px solid var(--border);border-bottom:none;margin-bottom:0}
+    .rtab{padding:12px 24px;font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--dim);letter-spacing:2px;cursor:pointer;background:var(--surface);border:none;color:var(--dim);transition:background 0.2s,color 0.2s}
+    .rtab:hover{color:var(--neon)}
+    .rtab.active{background:rgba(0,255,231,0.07);color:var(--neon);box-shadow:inset 0 2px 0 var(--neon)}
+    .tab-content{display:none;background:var(--surface);border:1px solid var(--border);padding:28px}
+    .tab-content.active{display:block}
+
+    /* Port table */
+    .ports-table{width:100%;border-collapse:collapse}
+    .ports-table th{text-align:left;padding:11px 14px;font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--dim);letter-spacing:2px;border-bottom:1px solid var(--border);background:var(--surface2)}
+    .ports-table td{padding:13px 14px;font-family:'Share Tech Mono',monospace;font-size:0.75rem;border-bottom:1px solid rgba(0,255,231,0.05);vertical-align:top}
+    .ports-table tr:hover td{background:rgba(0,255,231,0.025)}
+    .p-num{color:var(--neon);font-weight:bold}
+    .p-open{display:inline-block;padding:3px 9px;background:rgba(0,255,136,0.1);color:var(--green);border:1px solid rgba(0,255,136,0.25);font-size:0.6rem;letter-spacing:2px}
+    .risk-HIGH{color:var(--red)}
+    .risk-MEDIUM{color:var(--yellow)}
+    .risk-LOW{color:var(--dim)}
+    .p-svc{color:#fff}
+    .p-ver{color:var(--dim);font-size:0.68rem;margin-top:2px}
+    .p-desc{color:var(--dim);font-size:0.65rem;margin-top:3px;line-height:1.5}
+    .cve-tag{display:inline-block;padding:2px 7px;background:rgba(255,60,0,0.15);color:#ff6040;border:1px solid rgba(255,60,0,0.3);font-size:0.6rem;margin:2px 2px 0 0}
+
+    .empty-state{text-align:center;padding:50px;font-family:'Share Tech Mono',monospace;color:var(--dim);font-size:0.78rem}
+    .empty-icon{font-size:2rem;color:var(--green);margin-bottom:12px;display:block}
+
+    /* Geo/OS/WHOIS info grids */
+    .info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+    .ig-item{padding:14px;background:var(--surface2);border:1px solid var(--border)}
+    .ig-key{font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:var(--dim);letter-spacing:2px;margin-bottom:6px}
+    .ig-val{font-family:'Share Tech Mono',monospace;font-size:0.82rem;color:var(--text)}
+    .ig-val.accent{color:var(--neon)}
+
+    .disclaimer{margin-top:20px;padding:14px 18px;border-left:2px solid var(--neon2);background:rgba(255,0,60,0.04);font-family:'Share Tech Mono',monospace;font-size:0.63rem;color:var(--dim);line-height:1.7}
+
+    @media(max-width:900px){
+      main{grid-template-columns:1fr}
+      .main-right{order:-1}
+      .summary-grid{grid-template-columns:repeat(3,1fr)}
+      #report-section{grid-column:1}
+    }
+    @media(max-width:600px){
+      main{padding:24px 16px 80px}
+      nav{padding:14px 20px}
+      .summary-grid{grid-template-columns:repeat(2,1fr)}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">CYBER<span>SCAN</span> ELITE</a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">HOME</a>
+    <a href="/scan" class="nav-link active">SCANNER</a>
+    <a href="/history" class="nav-link">HISTORY</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- ── LEFT: CONFIG + PROGRESS ── -->
+<div class="main-left">
+
+  <!-- INPUT PANEL -->
+  <div class="panel" id="input-panel">
+    <div class="panel-label">// SCAN CONFIGURATION</div>
+
+    <div class="field">
+      <label>TARGET — URL / DOMAIN / IP ADDRESS</label>
+      <input type="text" id="target" placeholder="e.g. 192.168.1.1  ·  scanme.nmap.org  ·  example.com" autocomplete="off" spellcheck="false"/>
+    </div>
+
+    <div class="panel-label" style="margin-bottom:14px">// SCAN MODE</div>
+    <div class="scan-types" id="scan-types">
+      <button class="stype active" data-type="normal">
+        <span class="stype-num">TYPE 01</span>
+        <div class="stype-title">NORMAL</div>
+        <div class="stype-desc">Top 20 ports</div>
+      </button>
+      <button class="stype" data-type="single">
+        <span class="stype-num">TYPE 02</span>
+        <div class="stype-title">SINGLE</div>
+        <div class="stype-desc">One port</div>
+      </button>
+      <button class="stype" data-type="range">
+        <span class="stype-num">TYPE 03</span>
+        <div class="stype-title">RANGE</div>
+        <div class="stype-desc">Port range</div>
+      </button>
+    </div>
+
+    <div class="opt-field" id="opt-single">
+      <div class="field"><label>PORT NUMBER</label><input type="number" id="single-port" placeholder="e.g. 8080" min="1" max="65535"/></div>
+    </div>
+    <div class="opt-field" id="opt-range">
+      <div class="two-col">
+        <div class="field"><label>START PORT</label><input type="number" id="range-start" placeholder="e.g. 1" min="1" max="65535"/></div>
+        <div class="field"><label>END PORT</label><input type="number" id="range-end" placeholder="e.g. 1024" min="1" max="65535"/></div>
+      </div>
+    </div>
+
+    <div class="panel-label" style="margin-bottom:14px">// ADVANCED OPTIONS</div>
+    <div class="toggles">
+      <div class="toggle-row">
+        <div class="toggle-info"><span class="toggle-name">OS DETECTION</span><span class="toggle-desc">Fingerprint target operating system</span></div>
+        <label class="switch"><input type="checkbox" id="tog-os"/><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info"><span class="toggle-name">VULNERABILITY SCAN</span><span class="toggle-desc">Run NSE scripts — detects CVEs (slower)</span></div>
+        <label class="switch"><input type="checkbox" id="tog-vuln"/><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-info"><span class="toggle-name">UDP PORT SCAN</span><span class="toggle-desc">Scan top 20 UDP ports (requires root)</span></div>
+        <label class="switch"><input type="checkbox" id="tog-udp"/><span class="slider"></span></label>
+      </div>
+    </div>
+
+    <button class="btn-scan" id="btn-scan" onclick="startScan()">▶ INITIATE SCAN</button>
+    <button class="btn-cancel" id="btn-cancel" onclick="cancelScan()">■ CANCEL SCAN</button>
+
+    <div class="disclaimer">⚠ FOR AUTHORIZED USE ONLY — Only scan systems you own or have explicit written permission to test.</div>
+  </div>
+
+  <!-- PROGRESS PANEL -->
+  <div class="panel" id="progress-panel">
+    <div class="panel-label">// SCAN IN PROGRESS</div>
+    <div class="prog-header">
+      <div class="prog-target" id="prog-target">—</div>
+      <div class="prog-pct" id="prog-pct">0%</div>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="prog-bar"></div></div>
+    <div class="prog-status" id="prog-status">Initializing...</div>
+    <div class="prog-stats">
+      <div class="pstat"><span class="pstat-val" id="stat-scanned">0</span><span class="pstat-label">SCANNED</span></div>
+      <div class="pstat"><span class="pstat-val" id="stat-total">—</span><span class="pstat-label">TOTAL</span></div>
+      <div class="pstat"><span class="pstat-val" id="stat-open">0</span><span class="pstat-label">OPEN</span></div>
+    </div>
+    <div class="live-feed">
+      <div class="live-feed-label">// OPEN PORTS — LIVE</div>
+      <div class="live-ports" id="live-ports"></div>
+    </div>
+    <div class="terminal" id="terminal"></div>
+  </div>
+
+</div>
+
+<!-- ── RIGHT: INFO SIDEBAR ── -->
+<div class="main-right">
+
+  <div class="info-box" id="geo-box">
+    <div class="info-box-label">// GEO-IP INFO</div>
+    <div class="info-row"><div class="info-key">STATUS</div><div class="info-val" id="geo-status">Waiting for scan...</div></div>
+    <div class="info-row"><div class="info-key">IP ADDRESS</div><div class="info-val neon" id="geo-ip">—</div></div>
+    <div class="info-row"><div class="info-key">COUNTRY</div><div class="info-val" id="geo-country">—</div></div>
+    <div class="info-row"><div class="info-key">CITY / REGION</div><div class="info-val" id="geo-city">—</div></div>
+    <div class="info-row"><div class="info-key">ISP</div><div class="info-val" id="geo-isp">—</div></div>
+    <div class="info-row" style="margin-bottom:0;padding-bottom:0;border:none"><div class="info-key">ORGANIZATION</div><div class="info-val" id="geo-org">—</div></div>
+  </div>
+
+  <div class="info-box" id="host-box">
+    <div class="info-box-label">// HOST INFO</div>
+    <div class="info-row"><div class="info-key">HOST STATUS</div><div class="info-val" id="host-status">—</div></div>
+    <div class="info-row"><div class="info-key">HOSTNAME</div><div class="info-val" id="host-hostname">—</div></div>
+    <div class="info-row" style="margin-bottom:0;padding-bottom:0;border:none"><div class="info-key">OS DETECTED</div><div class="info-val neon" id="host-os">—</div></div>
+  </div>
+
+  <div class="info-box" id="whois-box">
+    <div class="info-box-label">// WHOIS</div>
+    <div id="whois-content"><div class="info-val" style="color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:0.7rem">Waiting for scan...</div></div>
+  </div>
+
+</div>
+
+<!-- ── FULL-WIDTH REPORT ── -->
+<div id="report-section">
+  <div class="panel">
+    <div class="panel-label">// SCAN REPORT</div>
+    <div class="report-top">
+      <div class="report-meta" id="report-meta"></div>
+      <div class="action-row">
+        <button class="btn-dl" onclick="downloadReport()">⬇ DOWNLOAD HTML</button>
+        <button class="btn-ns" onclick="newScan()">↺ NEW SCAN</button>
+      </div>
+    </div>
+
+    <div class="summary-grid" id="summary-grid"></div>
+
+    <div class="report-tabs" id="report-tabs">
+      <button class="rtab active" onclick="switchTab('tcp')">TCP PORTS</button>
+      <button class="rtab" onclick="switchTab('udp')" id="tab-udp" style="display:none">UDP PORTS</button>
+      <button class="rtab" onclick="switchTab('vuln')" id="tab-vuln" style="display:none">VULNERABILITIES</button>
+      <button class="rtab" onclick="switchTab('intel')">INTELLIGENCE</button>
+    </div>
+
+    <div class="tab-content active" id="tab-tcp"></div>
+    <div class="tab-content" id="tab-udp-content"></div>
+    <div class="tab-content" id="tab-vuln-content"></div>
+    <div class="tab-content" id="tab-intel"></div>
+  </div>
+</div>
+
+</main>
+
+<script>
+let scanType = 'normal';
+let reportData = null;
+let currentSessionId = null;
+
+// ── SCAN TYPE TABS
+document.querySelectorAll('.stype').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.stype').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    scanType = btn.dataset.type;
+    document.querySelectorAll('.opt-field').forEach(f => f.classList.remove('visible'));
+    if (scanType === 'single') document.getElementById('opt-single').classList.add('visible');
+    if (scanType === 'range')  document.getElementById('opt-range').classList.add('visible');
+  });
+});
+
+// ── TERMINAL LOG
+function log(msg, cls='') {
+  const t = document.getElementById('terminal');
+  const ts = new Date().toLocaleTimeString('en-US',{hour12:false});
+  const line = document.createElement('span');
+  line.className = 'tl ' + cls;
+  line.textContent = `[${ts}] ${msg}`;
+  t.appendChild(line);
+  t.scrollTop = t.scrollHeight;
+}
+
+function setProgress(pct, status, stats={}) {
+  document.getElementById('prog-bar').style.width = pct + '%';
+  document.getElementById('prog-pct').textContent = pct + '%';
+  if (status) document.getElementById('prog-status').textContent = status;
+  if (stats.scanned !== undefined) document.getElementById('stat-scanned').textContent = stats.scanned;
+  if (stats.total   !== undefined) document.getElementById('stat-total').textContent   = stats.total;
+  if (stats.open    !== undefined) document.getElementById('stat-open').textContent    = stats.open;
+}
+
+function addLivePort(ports) {
+  const container = document.getElementById('live-ports');
+  ports.forEach(p => {
+    const tag = document.createElement('div');
+    tag.className = 'live-port-tag';
+    tag.innerHTML = `<span style="color:var(--neon)">:${p.port}</span> ${p.service}`;
+    container.appendChild(tag);
+  });
+}
+
+function updateSidebar(report) {
+  // GeoIP
+  const g = report.geo || {};
+  document.getElementById('geo-status').textContent  = g.error ? 'Lookup failed' : 'Resolved';
+  document.getElementById('geo-ip').textContent      = g.ip || '—';
+  document.getElementById('geo-country').textContent = g.country || '—';
+  document.getElementById('geo-city').textContent    = [g.city, g.region].filter(Boolean).join(', ') || '—';
+  document.getElementById('geo-isp').textContent     = g.isp || '—';
+  document.getElementById('geo-org').textContent     = g.org || '—';
+
+  // Host
+  const h = report.host_info || {};
+  const hostEl = document.getElementById('host-status');
+  hostEl.textContent = h.alive ? 'ONLINE' : 'OFFLINE / FILTERED';
+  hostEl.className   = 'info-val ' + (h.alive ? 'green' : 'red');
+  document.getElementById('host-hostname').textContent = h.hostname || '—';
+
+  const os = report.os_info || {};
+  document.getElementById('host-os').textContent = os.name
+    ? `${os.name} (${os.accuracy}% confidence)`
+    : report.os_enabled ? 'Not detected' : 'OS scan not enabled';
+
+  // WHOIS
+  const w = report.whois || {};
+  const keys = Object.keys(w);
+  const wc = document.getElementById('whois-content');
+  if (!keys.length) {
+    wc.innerHTML = '<div class="info-val" style="color:var(--dim);font-family:\'Share Tech Mono\',monospace;font-size:0.7rem">No WHOIS data available</div>';
+  } else {
+    wc.innerHTML = keys.map(k => `
+      <div class="info-row" style="margin-bottom:11px;padding-bottom:11px">
+        <div class="info-key">${k.toUpperCase()}</div>
+        <div class="info-val">${w[k]}</div>
+      </div>`).join('') + '<div style="height:1px"></div>';
+  }
+}
+
+// ── START SCAN
+async function startScan() {
+  const target = document.getElementById('target').value.trim();
+  if (!target) { alert('Please enter a target.'); return; }
+
+  let body = {
+    target, scan_type: scanType,
+    run_os:   document.getElementById('tog-os').checked,
+    run_vuln: document.getElementById('tog-vuln').checked,
+    run_udp:  document.getElementById('tog-udp').checked,
+  };
+
+  if (scanType === 'single') {
+    const p = document.getElementById('single-port').value;
+    if (!p) { alert('Please enter a port number.'); return; }
+    body.port = p;
+  }
+  if (scanType === 'range') {
+    const s = document.getElementById('range-start').value;
+    const e = document.getElementById('range-end').value;
+    if (!s || !e) { alert('Please enter start and end ports.'); return; }
+    if (parseInt(e) <= parseInt(s)) { alert('End port must be greater than start.'); return; }
+    body.port_range = { start: s, end: e };
+  }
+
+  // UI
+  document.getElementById('input-panel').style.display   = 'none';
+  document.getElementById('progress-panel').classList.add('visible');
+  document.getElementById('report-section').classList.remove('visible');
+  document.getElementById('terminal').innerHTML   = '';
+  document.getElementById('live-ports').innerHTML = '';
+  document.getElementById('btn-cancel').classList.add('visible');
+  document.getElementById('prog-target').textContent = target;
+  setProgress(0, 'Sending scan request...', {scanned:0, total:'—', open:0});
+
+  log('CyberScan Elite v2.0 initializing...', 'info');
+  log(`Target: ${target}`, 'info');
+  log(`Mode: ${scanType.toUpperCase()} | OS:${body.run_os} Vuln:${body.run_vuln} UDP:${body.run_udp}`, 'info');
+
+  const res = await fetch('/api/start-scan', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  const { session_id, error } = await res.json();
+  if (error) { alert('Error: ' + error); return; }
+  currentSessionId = session_id;
+
+  const evtSource = new EventSource(`/api/scan-progress/${session_id}`);
+  evtSource.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+    if (data.type === 'heartbeat') return;
+
+    if (data.type === 'status') {
+      setProgress(data.progress, data.message);
+      log(data.message, 'info');
+    }
+    if (data.type === 'progress') {
+      setProgress(data.progress, data.message, {scanned:data.scanned, total:data.total, open:data.open_found});
+    }
+    if (data.type === 'port_found') {
+      addLivePort(data.ports);
+      data.ports.forEach(p => log(`OPEN PORT: ${p.port} (${p.service})`, 'success'));
+    }
+    if (data.type === 'complete') {
+      setProgress(100, 'Scan complete!', {
+        scanned: data.report.total_scanned,
+        total:   data.report.total_scanned,
+        open:    data.report.open_count,
+      });
+      log(`COMPLETE — ${data.report.open_count} open, ${data.report.total_cves} CVEs, ${data.report.duration}s`, 'success');
+      evtSource.close();
+      reportData = data.report;
+      updateSidebar(data.report);
+      document.getElementById('btn-cancel').classList.remove('visible');
+      setTimeout(() => showReport(data.report), 700);
+    }
+    if (data.type === 'cancelled') {
+      log('Scan cancelled by user.', 'warn');
+      evtSource.close();
+      document.getElementById('btn-cancel').classList.remove('visible');
+      setTimeout(newScan, 1200);
+    }
+    if (data.type === 'error') {
+      log('ERROR: ' + data.message, 'err');
+      evtSource.close();
+      alert('Scan error: ' + data.message);
+      newScan();
+    }
+  };
+}
+
+async function cancelScan() {
+  if (!currentSessionId) return;
+  await fetch(`/api/cancel-scan/${currentSessionId}`, {method:'POST'});
+  log('Cancellation requested...', 'warn');
+}
+
+// ── REPORT
+function switchTab(name) {
+  document.querySelectorAll('.rtab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  const tabMap = {tcp:'tab-tcp', udp:'tab-udp-content', vuln:'tab-vuln-content', intel:'tab-intel'};
+  document.getElementById(tabMap[name]).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function showReport(r) {
+  document.getElementById('progress-panel').classList.remove('visible');
+  document.getElementById('report-section').classList.add('visible');
+
+  // Meta
+  document.getElementById('report-meta').innerHTML = `
+    <span>TARGET</span> <strong style="color:var(--neon)">${r.target}</strong>&nbsp;&nbsp;
+    <span>SCAN</span> <strong style="color:var(--neon)">${r.scan_type}</strong><br>
+    <span>TIME</span> <strong style="color:var(--neon)">${r.timestamp}</strong>&nbsp;&nbsp;
+    <span>DURATION</span> <strong style="color:var(--neon)">${r.duration}s</strong>
+  `;
+
+  // Summary
+  document.getElementById('summary-grid').innerHTML = `
+    <div class="scard"><span class="scard-num" style="color:var(--neon)">${r.total_scanned}</span><span class="scard-label">SCANNED</span></div>
+    <div class="scard"><span class="scard-num" style="color:var(--green)">${r.open_count}</span><span class="scard-label">OPEN TCP</span></div>
+    <div class="scard"><span class="scard-num" style="color:var(--red)">${r.high_risk_count}</span><span class="scard-label">HIGH RISK</span></div>
+    <div class="scard"><span class="scard-num" style="color:var(--yellow)">${r.medium_risk_count}</span><span class="scard-label">MEDIUM RISK</span></div>
+    <div class="scard"><span class="scard-num" style="color:#ff6040">${r.total_cves}</span><span class="scard-label">CVEs FOUND</span></div>
+    <div class="scard"><span class="scard-num" style="color:var(--neon)">${r.duration}s</span><span class="scard-label">DURATION</span></div>
+  `;
+
+  // TCP tab
+  const tcpEl = document.getElementById('tab-tcp');
+  if (!r.ports || r.ports.length === 0) {
+    tcpEl.innerHTML = `<div class="empty-state"><span class="empty-icon">✓</span>No open TCP ports found.<br><br>All scanned ports are closed or filtered.</div>`;
+  } else {
+    tcpEl.innerHTML = `<table class="ports-table">
+      <thead><tr><th>PORT</th><th>STATE</th><th>SERVICE / VERSION</th><th>RISK</th><th>CVEs</th></tr></thead>
+      <tbody>${r.ports.map(p => `
+        <tr>
+          <td class="p-num">${p.port}/tcp</td>
+          <td><span class="p-open">OPEN</span></td>
+          <td>
+            <div class="p-svc">${p.service}</div>
+            <div class="p-ver">${[p.product, p.version, p.extrainfo].filter(Boolean).join(' ') || '—'}</div>
+            <div class="p-desc">${p.description}</div>
+          </td>
+          <td class="risk-${p.risk}">${p.risk}</td>
+          <td>${p.cve_count > 0 ? `<span style="color:#ff6040;font-family:'Share Tech Mono',monospace">${p.cve_count} CVE(s)</span>` : '<span style="color:var(--dim)">—</span>'}</td>
+        </tr>`).join('')}
+      </tbody></table>`;
+  }
+
+  // UDP tab
+  if (r.udp_enabled) {
+    document.getElementById('tab-udp').style.display = '';
+    const udpEl = document.getElementById('tab-udp-content');
+    if (!r.udp_ports || r.udp_ports.length === 0) {
+      udpEl.innerHTML = `<div class="empty-state"><span class="empty-icon">✓</span>No open/filtered UDP ports found.</div>`;
+    } else {
+      udpEl.innerHTML = `<table class="ports-table">
+        <thead><tr><th>PORT</th><th>STATE</th><th>SERVICE</th><th>RISK</th></tr></thead>
+        <tbody>${r.udp_ports.map(p => `
+          <tr>
+            <td class="p-num">${p.port}/udp</td>
+            <td><span class="p-open" style="background:rgba(0,200,255,0.1);color:#00ccff;border-color:rgba(0,200,255,0.3)">${p.state}</span></td>
+            <td class="p-svc">${p.service}</td>
+            <td class="risk-${p.risk}">${p.risk}</td>
+          </tr>`).join('')}
+        </tbody></table>`;
+    }
+  }
+
+  // Vuln tab
+  if (r.vuln_enabled) {
+    document.getElementById('tab-vuln').style.display = '';
+    const vulnEl = document.getElementById('tab-vuln-content');
+    const allVulns = r.ports.filter(p => p.vulns && p.vulns.length > 0);
+    if (allVulns.length === 0) {
+      vulnEl.innerHTML = `<div class="empty-state"><span class="empty-icon">🛡️</span>No vulnerabilities found on open ports.<br><br>This may indicate a well-patched system or a firewall blocking scan scripts.</div>`;
+    } else {
+      vulnEl.innerHTML = allVulns.map(p => `
+        <div style="margin-bottom:24px;padding:20px;background:rgba(255,60,0,0.04);border:1px solid rgba(255,60,0,0.15)">
+          <div style="font-family:'Orbitron',monospace;font-size:0.8rem;color:var(--red);margin-bottom:12px">PORT ${p.port} — ${p.service}</div>
+          ${p.vulns.map(v => `
+            <div style="margin-bottom:12px;padding:12px;background:rgba(0,0,0,0.3)">
+              <div style="font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--yellow);margin-bottom:6px">${v.script}</div>
+              ${v.cves.map(c => `<span class="cve-tag">${c}</span>`).join('')}
+              <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--dim);margin-top:8px;white-space:pre-wrap">${v.output}</div>
+            </div>`).join('')}
+        </div>`).join('');
+    }
+  }
+
+  // Intel tab
+  const geo = r.geo || {};
+  const os  = r.os_info || {};
+  const wh  = r.whois || {};
+  document.getElementById('tab-intel').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+      <div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--neon2);letter-spacing:3px;margin-bottom:14px">// GEO-IP</div>
+        <div class="info-grid">
+          <div class="ig-item"><div class="ig-key">IP</div><div class="ig-val accent">${geo.ip||'—'}</div></div>
+          <div class="ig-item"><div class="ig-key">COUNTRY</div><div class="ig-val">${geo.country||'—'}</div></div>
+          <div class="ig-item"><div class="ig-key">CITY</div><div class="ig-val">${geo.city||'—'}</div></div>
+          <div class="ig-item"><div class="ig-key">ISP</div><div class="ig-val">${geo.isp||'—'}</div></div>
+          <div class="ig-item" style="grid-column:1/-1"><div class="ig-key">ORGANIZATION</div><div class="ig-val">${geo.org||'—'}</div></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--neon2);letter-spacing:3px;margin-bottom:14px">// OS DETECTION</div>
+        <div class="info-grid">
+          <div class="ig-item" style="grid-column:1/-1"><div class="ig-key">NAME</div><div class="ig-val accent">${os.name||'Not detected'}</div></div>
+          <div class="ig-item"><div class="ig-key">FAMILY</div><div class="ig-val">${os.family||'—'}</div></div>
+          <div class="ig-item"><div class="ig-key">ACCURACY</div><div class="ig-val">${os.accuracy ? os.accuracy+'%' : '—'}</div></div>
+        </div>
+      </div>
+    </div>
+    ${Object.keys(wh).length > 0 ? `
+    <div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--neon2);letter-spacing:3px;margin-bottom:14px">// WHOIS DATA</div>
+      <div class="info-grid">${Object.entries(wh).map(([k,v]) => `
+        <div class="ig-item"><div class="ig-key">${k.toUpperCase()}</div><div class="ig-val">${v}</div></div>`).join('')}
+      </div>
+    </div>` : ''}
+  `;
+}
+
+// ── DOWNLOAD REPORT
+function downloadReport() {
+  if (!reportData) return;
+  const r = reportData;
+
+  const riskColor = {HIGH:'#ff4060', MEDIUM:'#ffe600', LOW:'#4a7a8a'};
+
+  const tcpRows = r.ports.length > 0
+    ? r.ports.map(p => `<tr>
+        <td style="color:#00ffe7;font-family:monospace">${p.port}/tcp</td>
+        <td><span style="color:#00ff88;font-size:11px">OPEN</span></td>
+        <td style="color:#fff">${p.service}<br><span style="color:#4a7a8a;font-size:11px">${[p.product,p.version].filter(Boolean).join(' ')||''}</span></td>
+        <td style="color:${riskColor[p.risk]}">${p.risk}</td>
+        <td style="color:#ff6040">${p.cve_count>0?p.cve_count+' CVE(s)':'—'}</td>
+        <td style="color:#4a7a8a;font-size:11px">${p.description}</td>
+      </tr>`).join('')
+    : `<tr><td colspan="6" style="text-align:center;padding:32px;color:#4a7a8a">No open TCP ports found</td></tr>`;
+
+  const udpRows = r.udp_ports && r.udp_ports.length > 0
+    ? r.udp_ports.map(p => `<tr>
+        <td style="color:#00ccff;font-family:monospace">${p.port}/udp</td>
+        <td><span style="color:#00ccff;font-size:11px">${p.state}</span></td>
+        <td style="color:#fff">${p.service}</td>
+        <td style="color:${riskColor[p.risk]}">${p.risk}</td>
+      </tr>`).join('')
+    : '';
+
+  const geo = r.geo || {};
+  const os  = r.os_info || {};
+  const wh  = r.whois || {};
+
+  const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<title>CyberScan Elite Report — ${r.target}</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  body{background:#03080f;color:#c8e6f0;font-family:'Rajdhani',sans-serif;margin:0;padding:48px}
+  h1{font-family:'Orbitron',monospace;color:#00ffe7;font-size:2rem;letter-spacing:4px;margin-bottom:4px}
+  .sub{font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:#4a7a8a;letter-spacing:3px;margin-bottom:36px}
+  .meta{font-family:'Share Tech Mono',monospace;font-size:0.78rem;line-height:2.2;margin-bottom:28px}
+  .meta span{color:#4a7a8a;margin-right:8px}.meta strong{color:#00ffe7}
+  .summary{display:flex;gap:1px;background:rgba(0,255,231,0.1);border:1px solid rgba(0,255,231,0.1);margin-bottom:36px}
+  .sbox{flex:1;background:#070f1a;padding:18px;text-align:center}
+  .snum{font-family:'Orbitron',monospace;font-size:1.6rem;font-weight:900;display:block}
+  .slbl{font-family:'Share Tech Mono',monospace;font-size:0.55rem;color:#4a7a8a;letter-spacing:2px}
+  h2{font-family:'Orbitron',monospace;font-size:0.9rem;color:#00ffe7;letter-spacing:3px;margin:36px 0 16px;border-bottom:1px solid rgba(0,255,231,0.1);padding-bottom:10px}
+  table{width:100%;border-collapse:collapse;margin-bottom:32px}
+  th{font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:#4a7a8a;letter-spacing:2px;text-align:left;padding:10px 14px;border-bottom:1px solid rgba(0,255,231,0.1);background:#070f1a}
+  td{font-family:'Share Tech Mono',monospace;font-size:0.75rem;padding:12px 14px;border-bottom:1px solid rgba(0,255,231,0.05);vertical-align:top}
+  .intel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:32px}
+  .ig{background:#070f1a;padding:14px;border:1px solid rgba(0,255,231,0.1)}
+  .ik{font-family:'Share Tech Mono',monospace;font-size:0.55rem;color:#4a7a8a;letter-spacing:2px;margin-bottom:5px}
+  .iv{font-family:'Share Tech Mono',monospace;font-size:0.78rem;color:#c8e6f0}
+  footer{margin-top:56px;font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:#4a7a8a;letter-spacing:2px;text-align:center;border-top:1px solid rgba(0,255,231,0.08);padding-top:18px}
+</style></head>
+<body>
+<h1>CYBERSCAN ELITE</h1>
+<div class="sub">// FULL SCAN REPORT · ${r.timestamp}</div>
+<div class="meta">
+  <span>TARGET</span><strong>${r.target}</strong>&nbsp;&nbsp;
+  <span>SCAN TYPE</span><strong>${r.scan_type}</strong>&nbsp;&nbsp;
+  <span>DURATION</span><strong>${r.duration}s</strong>
+</div>
+<div class="summary">
+  <div class="sbox"><span class="snum" style="color:#00ffe7">${r.total_scanned}</span><span class="slbl">SCANNED</span></div>
+  <div class="sbox"><span class="snum" style="color:#00ff88">${r.open_count}</span><span class="slbl">OPEN TCP</span></div>
+  <div class="sbox"><span class="snum" style="color:#ff4060">${r.high_risk_count}</span><span class="slbl">HIGH RISK</span></div>
+  <div class="sbox"><span class="snum" style="color:#ffe600">${r.medium_risk_count}</span><span class="slbl">MEDIUM RISK</span></div>
+  <div class="sbox"><span class="snum" style="color:#ff6040">${r.total_cves}</span><span class="slbl">CVEs</span></div>
+  <div class="sbox"><span class="snum" style="color:#00ffe7">${r.duration}s</span><span class="slbl">DURATION</span></div>
+</div>
+<h2>TCP OPEN PORTS</h2>
+<table>
+  <thead><tr><th>PORT</th><th>STATE</th><th>SERVICE / VERSION</th><th>RISK</th><th>CVEs</th><th>DESCRIPTION</th></tr></thead>
+  <tbody>${tcpRows}</tbody>
+</table>
+${r.udp_ports && r.udp_ports.length > 0 ? `<h2>UDP OPEN PORTS</h2><table><thead><tr><th>PORT</th><th>STATE</th><th>SERVICE</th><th>RISK</th></tr></thead><tbody>${udpRows}</tbody></table>` : ''}
+<h2>INTELLIGENCE</h2>
+<div class="intel-grid">
+  <div class="ig"><div class="ik">IP ADDRESS</div><div class="iv" style="color:#00ffe7">${geo.ip||'—'}</div></div>
+  <div class="ig"><div class="ik">COUNTRY</div><div class="iv">${geo.country||'—'}</div></div>
+  <div class="ig"><div class="ik">CITY</div><div class="iv">${geo.city||'—'}</div></div>
+  <div class="ig"><div class="ik">ISP</div><div class="iv">${geo.isp||'—'}</div></div>
+  <div class="ig"><div class="ik">OS DETECTED</div><div class="iv" style="color:#00ffe7">${os.name||'N/A'}</div></div>
+  <div class="ig"><div class="ik">OS ACCURACY</div><div class="iv">${os.accuracy?os.accuracy+'%':'N/A'}</div></div>
+  ${Object.entries(wh).map(([k,v])=>`<div class="ig"><div class="ik">${k.toUpperCase()}</div><div class="iv">${v}</div></div>`).join('')}
+</div>
+<footer>CYBERSCAN ELITE v2.0 · POWERED BY NMAP · FOR AUTHORIZED USE ONLY</footer>
+</body></html>`;
+
+  const blob = new Blob([html], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `cyberscan_${r.target.replace(/[^a-z0-9]/gi,'_')}_${Date.now()}.html`;
+  a.click();
+}
+
+function newScan() {
+  reportData = null;
+  currentSessionId = null;
+  document.getElementById('progress-panel').classList.remove('visible');
+  document.getElementById('report-section').classList.remove('visible');
+  document.getElementById('input-panel').style.display = 'block';
+  document.getElementById('target').value = '';
+  document.getElementById('terminal').innerHTML = '';
+  document.getElementById('live-ports').innerHTML = '';
+  document.getElementById('btn-cancel').classList.remove('visible');
+}
+</script>
+</body>
+</html>

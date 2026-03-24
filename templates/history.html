@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CyberScan Elite — History</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--neon:#00ffe7;--neon2:#ff003c;--bg:#03080f;--surface:#070f1a;--border:rgba(0,255,231,0.14);--text:#c8e6f0;--dim:#4a7a8a;--green:#00ff88;--red:#ff4060;--yellow:#ffe600}
+    html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,231,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,231,0.02) 1px,transparent 1px);background-size:40px 40px;z-index:0;pointer-events:none}
+    nav{position:sticky;top:0;width:100%;z-index:100;padding:15px 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(3,8,15,0.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
+    .logo{font-family:'Orbitron',monospace;font-size:0.95rem;font-weight:900;color:var(--neon);letter-spacing:3px;text-decoration:none;text-shadow:0 0 18px rgba(0,255,231,0.45)}
+    .logo span{color:var(--neon2)}
+    .nav-links{display:flex;gap:28px}
+    .nav-link{font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--dim);letter-spacing:2px;text-decoration:none;transition:color 0.2s}
+    .nav-link:hover,.nav-link.active{color:var(--neon)}
+    main{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:44px 40px 100px}
+    .page-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:16px}
+    .page-title{font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:900;color:#fff;letter-spacing:3px}
+    .page-sub{font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--dim);letter-spacing:2px;margin-top:6px}
+    .btn-clear{padding:10px 22px;background:transparent;border:1px solid var(--neon2);color:var(--neon2);font-family:'Orbitron',monospace;font-size:0.65rem;letter-spacing:3px;cursor:pointer;transition:background 0.2s,color 0.2s}
+    .btn-clear:hover{background:var(--neon2);color:#fff}
+    .panel{background:var(--surface);border:1px solid var(--border);position:relative}
+    .panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--neon),transparent)}
+    table{width:100%;border-collapse:collapse}
+    th{text-align:left;padding:13px 18px;font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--dim);letter-spacing:2px;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.3)}
+    td{padding:14px 18px;font-family:'Share Tech Mono',monospace;font-size:0.75rem;border-bottom:1px solid rgba(0,255,231,0.05)}
+    tr:hover td{background:rgba(0,255,231,0.025);cursor:pointer}
+    .target-cell{color:var(--neon);font-size:0.82rem}
+    .type-cell{color:var(--dim)}
+    .open-cell{color:var(--green)}
+    .time-cell{color:var(--dim);font-size:0.68rem}
+    .dur-cell{color:var(--text)}
+    .action-cell{display:flex;gap:8px}
+    .btn-view{padding:5px 14px;background:rgba(0,255,231,0.06);border:1px solid rgba(0,255,231,0.2);color:var(--neon);font-family:'Share Tech Mono',monospace;font-size:0.6rem;cursor:pointer;transition:background 0.2s;letter-spacing:1px}
+    .btn-view:hover{background:rgba(0,255,231,0.14)}
+    .btn-del{padding:5px 10px;background:rgba(255,60,0,0.06);border:1px solid rgba(255,60,0,0.2);color:var(--red);font-family:'Share Tech Mono',monospace;font-size:0.6rem;cursor:pointer;transition:background 0.2s}
+    .btn-del:hover{background:rgba(255,60,0,0.16)}
+    .empty{text-align:center;padding:80px;font-family:'Share Tech Mono',monospace;color:var(--dim);font-size:0.8rem}
+    .empty-icon{font-size:2.5rem;display:block;margin-bottom:16px;opacity:0.4}
+    .loading{text-align:center;padding:60px;font-family:'Share Tech Mono',monospace;color:var(--dim);font-size:0.75rem;letter-spacing:3px}
+
+    /* Modal */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;align-items:center;justify-content:center;padding:40px}
+    .modal-overlay.visible{display:flex}
+    .modal{background:var(--surface);border:1px solid var(--border);width:100%;max-width:900px;max-height:90vh;overflow-y:auto;position:relative}
+    .modal::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--neon),transparent)}
+    .modal-head{padding:24px 28px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+    .modal-title{font-family:'Orbitron',monospace;font-size:0.9rem;color:var(--neon);letter-spacing:2px}
+    .modal-close{background:none;border:1px solid var(--border);color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:0.7rem;padding:6px 14px;cursor:pointer;transition:color 0.2s,border-color 0.2s}
+    .modal-close:hover{color:var(--neon);border-color:var(--neon)}
+    .modal-body{padding:28px}
+    .modal-actions{display:flex;gap:10px;padding:20px 28px;border-top:1px solid var(--border)}
+    .btn-dl{padding:11px 24px;background:transparent;border:1px solid var(--neon);color:var(--neon);font-family:'Orbitron',monospace;font-size:0.65rem;letter-spacing:3px;cursor:pointer;transition:background 0.2s,color 0.2s}
+    .btn-dl:hover{background:var(--neon);color:var(--bg)}
+
+    .report-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:24px}
+    .rsbox{background:var(--bg);padding:16px;text-align:center}
+    .rsnum{font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:900;display:block;margin-bottom:3px}
+    .rslbl{font-family:'Share Tech Mono',monospace;font-size:0.55rem;color:var(--dim);letter-spacing:2px}
+    .mini-table{width:100%;border-collapse:collapse}
+    .mini-table th{font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:var(--dim);letter-spacing:2px;text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.3)}
+    .mini-table td{font-family:'Share Tech Mono',monospace;font-size:0.72rem;padding:11px 12px;border-bottom:1px solid rgba(0,255,231,0.05)}
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">CYBER<span>SCAN</span> ELITE</a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">HOME</a>
+    <a href="/scan" class="nav-link">SCANNER</a>
+    <a href="/history" class="nav-link active">HISTORY</a>
+  </div>
+</nav>
+
+<main>
+  <div class="page-head">
+    <div>
+      <div class="page-title">SCAN HISTORY</div>
+      <div class="page-sub">// ALL PREVIOUS SCANS — STORED LOCALLY</div>
+    </div>
+    <button class="btn-clear" onclick="clearAll()">✕ CLEAR ALL</button>
+  </div>
+
+  <div class="panel">
+    <div id="table-wrap"><div class="loading">// LOADING SCAN HISTORY...</div></div>
+  </div>
+</main>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modal-title">SCAN DETAILS</div>
+      <button class="modal-close" onclick="closeModal()">✕ CLOSE</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn-dl" id="modal-dl-btn">⬇ DOWNLOAD REPORT</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let historyData = [];
+let currentModalReport = null;
+
+async function loadHistory() {
+  const res = await fetch('/api/history');
+  historyData = await res.json();
+  render();
+}
+
+function render() {
+  const wrap = document.getElementById('table-wrap');
+  if (!historyData.length) {
+    wrap.innerHTML = `<div class="empty"><span class="empty-icon">📋</span>No scan history yet.<br><br>Run your first scan to see it here.</div>`;
+    return;
+  }
+  wrap.innerHTML = `<table>
+    <thead><tr><th>TARGET</th><th>SCAN TYPE</th><th>OPEN PORTS</th><th>TIMESTAMP</th><th>DURATION</th><th>ACTIONS</th></tr></thead>
+    <tbody>${historyData.map(h => `
+      <tr onclick="viewScan('${h.id}')">
+        <td class="target-cell">${h.target}</td>
+        <td class="type-cell">${h.scan_type}</td>
+        <td class="open-cell">${h.open_count} open</td>
+        <td class="time-cell">${h.timestamp}</td>
+        <td class="dur-cell">${h.duration}s</td>
+        <td class="action-cell" onclick="event.stopPropagation()">
+          <button class="btn-view" onclick="viewScan('${h.id}')">VIEW</button>
+          <button class="btn-del" onclick="deleteScan('${h.id}')">✕</button>
+        </td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+
+async function viewScan(id) {
+  const res = await fetch(`/api/history/${id}`);
+  const report = await res.json();
+  currentModalReport = report;
+
+  document.getElementById('modal-title').textContent = `SCAN: ${report.target}`;
+  document.getElementById('modal-body').innerHTML = `
+    <div style="font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--dim);margin-bottom:18px">
+      ${report.scan_type} · ${report.timestamp} · ${report.duration}s
+    </div>
+    <div class="report-summary">
+      <div class="rsbox"><span class="rsnum" style="color:var(--neon)">${report.total_scanned}</span><span class="rslbl">SCANNED</span></div>
+      <div class="rsbox"><span class="rsnum" style="color:var(--green)">${report.open_count}</span><span class="rslbl">OPEN</span></div>
+      <div class="rsbox"><span class="rsnum" style="color:var(--red)">${report.high_risk_count||0}</span><span class="rslbl">HIGH RISK</span></div>
+      <div class="rsbox"><span class="rsnum" style="color:#ff6040">${report.total_cves||0}</span><span class="rslbl">CVEs</span></div>
+    </div>
+    ${report.ports && report.ports.length > 0 ? `
+    <table class="mini-table">
+      <thead><tr><th>PORT</th><th>SERVICE</th><th>VERSION</th><th>RISK</th><th>CVEs</th></tr></thead>
+      <tbody>${report.ports.map(p=>`
+        <tr>
+          <td style="color:var(--neon)">${p.port}/tcp</td>
+          <td style="color:#fff">${p.service}</td>
+          <td style="color:var(--dim)">${[p.product,p.version].filter(Boolean).join(' ')||'—'}</td>
+          <td style="color:${p.risk==='HIGH'?'var(--red)':p.risk==='MEDIUM'?'var(--yellow)':'var(--dim)'}">${p.risk}</td>
+          <td style="color:#ff6040">${p.cve_count>0?p.cve_count:'—'}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>` : `<div style="text-align:center;padding:32px;font-family:'Share Tech Mono',monospace;color:var(--dim)">No open ports found in this scan.</div>`}
+  `;
+
+  document.getElementById('modal-dl-btn').onclick = () => downloadFromHistory(report);
+  document.getElementById('modal').classList.add('visible');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('visible');
+  currentModalReport = null;
+}
+
+document.getElementById('modal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('modal')) closeModal();
+});
+
+async function deleteScan(id) {
+  if (!confirm('Delete this scan record?')) return;
+  await fetch(`/api/history/${id}`, {method:'DELETE'});
+  historyData = historyData.filter(h => h.id !== id);
+  render();
+}
+
+async function clearAll() {
+  if (!confirm('Delete ALL scan history? This cannot be undone.')) return;
+  await fetch('/api/history/clear', {method:'DELETE'});
+  historyData = [];
+  render();
+}
+
+function downloadFromHistory(r) {
+  // simplified download
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CyberScan Report — ${r.target}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+  <style>body{background:#03080f;color:#c8e6f0;font-family:monospace;padding:40px}h1{font-family:'Orbitron',monospace;color:#00ffe7;letter-spacing:4px}table{width:100%;border-collapse:collapse;margin-top:24px}th{text-align:left;padding:10px;font-size:11px;color:#4a7a8a;border-bottom:1px solid rgba(0,255,231,0.1)}td{padding:12px 10px;font-size:12px;border-bottom:1px solid rgba(0,255,231,0.05)}</style>
+  </head><body>
+  <h1>CYBERSCAN ELITE</h1>
+  <p style="color:#4a7a8a;font-size:12px;margin:8px 0 28px">Target: ${r.target} · ${r.scan_type} · ${r.timestamp}</p>
+  <table><thead><tr><th>PORT</th><th>SERVICE</th><th>VERSION</th><th>RISK</th><th>CVEs</th></tr></thead>
+  <tbody>${(r.ports||[]).map(p=>`<tr><td style="color:#00ffe7">${p.port}/tcp</td><td style="color:#fff">${p.service}</td><td style="color:#4a7a8a">${[p.product,p.version].filter(Boolean).join(' ')||'—'}</td><td style="color:${p.risk==='HIGH'?'#ff4060':p.risk==='MEDIUM'?'#ffe600':'#4a7a8a'}">${p.risk}</td><td style="color:#ff6040">${p.cve_count>0?p.cve_count:'—'}</td></tr>`).join('')}
+  </tbody></table>
+  </body></html>`;
+  const blob = new Blob([html],{type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `cyberscan_${r.target.replace(/[^a-z0-9]/gi,'_')}_${Date.now()}.html`;
+  a.click();
+}
+
+loadHistory();
+</script>
+</body>
+</html>
