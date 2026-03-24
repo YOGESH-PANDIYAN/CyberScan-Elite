@@ -35,7 +35,20 @@ and system administrators.
 7. Open browser: `http://localhost:5000`
 
 ## 📸 Screenshots
-*(Add screenshots of your landing page and scan results here)*
 
+### 🏠 Landing Page
+![Landing Page](screenshots/Landing.jpg)
+
+### 🔍 Scanner Page
+![Scanner](screenshots/Scanner.jpg)
+
+### ⏳ Scan In Progress
+![Scanning](screenshots/scanning.jpg)
+
+### 📊 Scan Report
+![Report](screenshots/Report.png)
+
+### 📜 Scan History
+![History](screenshots/History.jpg)
 ## ⚠️ Disclaimer
 For authorized use only. Only scan systems you own or have permission to test.
