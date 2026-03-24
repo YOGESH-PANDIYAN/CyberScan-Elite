@@ -43,7 +43,7 @@ and system administrators.
 ![Scanner](screenshots/Scanner.jpg)
 
 ### ⏳ Scan In Progress
-![Scanning](screenshots/scanning.jpg)
+![Scanning](screenshots/Scanning.jpg)
 
 ### 📊 Scan Report
 ![Report](screenshots/Report.jpg)
